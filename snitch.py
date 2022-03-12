@@ -1,7 +1,13 @@
 import telebot
 from telebot.types import InputMediaPhoto
-
 import logging
+from sys import argv
+
+if len(argv) > 1:
+    TOKEN = argv[1]
+else:
+    print("Please provide your bot token")
+    exit(1)
 
 log_file_path = "snitch.log"
 logging.basicConfig(filename=log_file_path,
