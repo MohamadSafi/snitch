@@ -39,6 +39,7 @@ def send_welcome(message):
     tb.send_message(message.chat.id, msg)
     logger(f"welcome message sent to {message.from_user.username}")
 
+
 @tb.message_handler()
 def send_photo(message):
     if not is_forwarded_msg(message):
