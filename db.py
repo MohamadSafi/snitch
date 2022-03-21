@@ -63,6 +63,33 @@ def fetch_targets(spyer_id):
     conn.close()
     return res
 
+def fetch_target_data(target_id):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    data = (target_id,)
+    query = "SELECT * FROM Targets WHERE target_id = ?;"
+    cur.execute(query, data)
+    rows = cur.fetchall()
+    data = {}
+    conn.close()
+
+    for row in rows:
+        data["target_id"] = row[0]
+        data["username"] = row[1]
+        data["first_name"] = row[2]
+        data["last_name"] = row[3]
+
+    return data
+
+def delete_target(spyer_id, target_id):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    data = (spyer_id, target_id) 
+    query = "DELETE FROM Targets WHERE spyer_id = ? AND target_id = ?;"
+    cur.execute(query, data)
+    conn.commit()
+    conn.close()
+ 
 def fetch_photos(owner_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
