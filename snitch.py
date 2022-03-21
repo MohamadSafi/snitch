@@ -21,80 +21,127 @@ def is_forwarded_msg(message):
         return False
 
 
+def is_from_private_user(message):
+    if message.forward_from:
+        return False
+    return True
+
+
 def send_error(message, error):
     msg = f"**{error}**"
     tb.send_message(message.chat.id, msg, parse_mode="markdown")
     logger.warning(error)
 
 
+def send_msg(message, text):
+    tb.send_message(message.chat.id, text, parse_mode="markdown")
+    logger.info(
+        f"Send a message to user {message.from_user.id}, message = {text}")
+
+
 @tb.message_handler(commands=["start"])
 def send_welcome(message):
     msg = "Hey, I'm a snitch 🤫, And I'll send you every profile photo your target has, What do you think about that! cool ha?"
     tb.send_message(message.chat.id, msg)
-    logger.debug(f"welcome message sent to {message.from_user.username}") 
+    logger.debug(f"welcome message sent to {message.from_user.id}")
+
+
+def commit_user_from_message(message):
+    user_id = message.from_user.id
+    user_username = message.from_user.username
+    user_first_name = message.from_user.first_name
+
+    commit_user(user_id, user_username, user_first_name)
+    logger.info(f"Added user {user_id} to db")
+
+
+def commit_target_from_message(message):
+    target_username = message.forward_from.username
+    if not target_username:
+        target_username = "Not Available"
+
+    spyer_id = message.from_user.id
+    target_id = message.forward_from.id
+    target_first_name = message.forward_from.first_name
+    logger.debug(f"Got id {target_id} for target name`{target_id}`")
+    commit_target(spyer_id, target_id, target_username, target_first_name)
+    logger.info(f"Added target {target_id} to db")
+
+
+def commit_get_media_groups(photos, owner_id):
+    groups = []
+    media_group = []
+
+    for index, photo in enumerate(photos):
+        photo_id = photo[0].file_id
+        photo_uniq_id = photo[0].file_unique_id
+        commit_photo(photo_id, photo_uniq_id, owner_id)
+        logger.debug(f"Commited Photo {photo_id} to db")
+
+        if index % 10 == 0 and index != 0:
+            groups.append(media_group)
+            media_group = []
+
+        media_group.append(InputMediaPhoto(photo[0].file_id, ""))
+
+    if media_group:
+        groups.append(media_group)
+
+    logger.debug("Created Media groups")
+    return groups
+
+
+def get_photos_from_message(message):
+    owner_id = int(message.forward_from.id)
+    user_profile_photos = tb.get_user_profile_photos(owner_id)
+    photos = user_profile_photos.photos
+    logger.debug("Got user profile photos")
+
+    return photos
+
+
+def send_media_groups_list(groups, message):
+    for group in groups:
+        tb.send_media_group(message.chat.id, group)
+        logger.debug("Sent Media Group")
+
 
 @tb.message_handler()
-def send_photo(message):
-    if not is_forwarded_msg(message):
-        send_error(message,
-                   "Please forward a message from the user you want to track")
-        logger.warning(f"Message forwarded from {message.forward_from} is not valid")
-        return
-
+def spy(message):
     try:
-        spyer_id = message.from_user.id
-        spyer_username = message.from_user.username
-        spyer_first_name = message.from_user.first_name
-        commit_user(spyer_id, spyer_username, spyer_first_name)
-        logger.info(f"Added user {spyer_id} to db")
+        send_msg(message, "Fetching data, Please wait")
+        # Checking if the message is a forwarded message
+        if not is_forwarded_msg(message): raise NotForwardedMessageError
 
-        if not message.forward_from:
-            raise PrivateUserError
+        # Get user from Message and Commit it to db
+        commit_user_from_message(message)
 
-        target_username = message.forward_from.username
-        if not target_username:
-            target_username = "Not Available"
-        target_id = message.forward_from.id
-        target_first_name = message.forward_from.first_name
-        logger.debug(f"Got id {target_id} for target name`{target_username}`")
-        commit_target(spyer_id, target_id, target_username, target_first_name)
-        logger.info(f"Added target {target_id} to db")
+        # Get target from Message and Commit it to db
+        if is_from_private_user(message): raise PrivateUserError
+        commit_target_from_message(message)
 
-        user_profile_photos = tb.get_user_profile_photos(target_id)
-        logger.debug("Got user profile photos")
-         
-        photos = user_profile_photos.photos
-        for photo in photos:
-            photo=photo[0]
-            commit_photo(str(photo.file_id), str(photo.file_unique_id), "Null", target_id )
-        media = [
-            InputMediaPhoto(photo[0].file_id, f"{index}")
-            for index, photo in enumerate(photos)
-        ]
-        logger.debug("Created media group")
+        # Get target's photos
+        photos = get_photos_from_message(message)
 
-        if len(media) < 1:
-            logger.error("No photos to be sent")
-            return
+        # Commiting, Sending photos as a media group
+        groups = commit_get_media_groups(photos, message.from_user.id)
+        if len(groups) < 1: raise NoProfilePhotosError
 
-        groups_list = []
-        media_group = []
-        media_len = len(media)
-        for index, media_photo in enumerate(media):
-            media_group.append(media_photo)
-            if index % 10 == 0 and index != 0:
-                groups_list.append(media_group)
-                media_group = []
-            if index == media_len - 1 and media_group:
-                groups_list.append(media_group)
-
-        for group in groups_list:
-            tb.send_media_group(message.chat.id, group)
-            logger.debug("Sent Media Group")
+        send_media_groups_list(groups, message)
 
     except PrivateUserError:
-        send_error(message, "Can't access this user, It is a private user")
-        logger.error("Message forwarded from a private user")
+        errmsg = "Can't access this user, It is a private user"
+        send_error(message, errmsg)
+        return
+
+    except NoProfilePhotosError:
+        errmsg = "No profile photos available"
+        send_error(message, errmsg)
+        return
+
+    except NotForwardedMessageError:
+        errmsg = "Please forward a message from the user you want to track"
+        send_error(message, errmsg)
         return
 
     except Exception as e:
@@ -103,5 +150,4 @@ def send_photo(message):
 
 if __name__ == "__main__":
     create_tables()
-#    tb.polling()
-    tb.infinity_polling(interval = 0, timeout = 0)
+    tb.infinity_polling(interval=0, timeout=0)

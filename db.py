@@ -30,7 +30,7 @@ def commit_target(spyer_id, target_id, username, first_name, last_name = "Not Av
     conn.commit()
     conn.close()
 
-def commit_photo(photo_id, photo_uniq_id, photo_url, owner_id ):
+def commit_photo(photo_id, photo_uniq_id, owner_id, photo_url="Null"):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     data = (photo_id, photo_uniq_id, photo_url, owner_id)
