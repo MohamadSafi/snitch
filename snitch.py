@@ -85,7 +85,7 @@ def handle_query(call):
 
 def send_target_data(chat_id, target_id):
     data = fetch_target_data(target_id)
-    msg = f"ID: {data['target_id']}\nUsername: {data['username']}\nName: {data['first_name']} {data['last_name']}"
+    msg = f"ID: {data.get('target_id')}\nUsername: {data.get('username')}\nName: {data.get('first_name')} {data.get('last_name')}"
     tb.send_message(chat_id, msg)
 
 
