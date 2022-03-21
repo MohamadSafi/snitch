@@ -1,8 +1,8 @@
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "Photos" (
-	"photo_id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	"photo_uniq_id"	INTEGER NOT NULL,
-	"photo_url"	INTEGER,
+	"photo_id"	TEXT NOT NULL PRIMARY KEY,
+	"photo_uniq_id"	TEXT NOT NULL,
+	"photo_url"	TEXT,
 	"owner_id"	INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS "Targets" (

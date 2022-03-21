@@ -1,0 +1,2 @@
+class PrivateUserError(Exception):
+    pass
