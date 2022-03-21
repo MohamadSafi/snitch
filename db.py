@@ -3,10 +3,11 @@ import os
 
 DB_PATH = "snitch.db"
 
+
 def create_tables():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    with open("create_database.sql","r") as fd:
+    with open("create_database.sql", "r") as fd:
         cur.executescript(fd.read())
     conn.commit()
     conn.close()
@@ -21,28 +22,40 @@ def commit_user(user_id, username, first_name):
     conn.commit()
     conn.close()
 
-def commit_target(spyer_id, target_id, username, first_name, last_name = "Not Available", last_seen = "Unknown", bio = "NULL", status = "OFF", phone_number = "Not Available"):
+
+def commit_target(spyer_id,
+                  target_id,
+                  username,
+                  first_name,
+                  last_name=" ",
+                  last_seen="Unknown",
+                  bio="NULL",
+                  status="OFF",
+                  phone_number="Not Available"):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    data = (target_id, username, first_name, last_name, last_seen, bio, status,phone_number,spyer_id)
+    data = (target_id, username, first_name, last_name, last_seen, bio, status,
+            phone_number, spyer_id)
     query = "INSERT OR REPLACE INTO Targets (target_id, username, first_name, last_name, last_seen, bio, status,phone_number,spyer_id) VALUES (?,?,?,?,?,?,?,?,?);"
     cur.execute(query, data)
     conn.commit()
     conn.close()
 
-def commit_photo(photo_id, photo_uniq_id, photo_url, owner_id ):
+
+def commit_photo(photo_id, photo_uniq_id, owner_id, photo_url="Null"):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     data = (photo_id, photo_uniq_id, photo_url, owner_id)
     query = "INSERT OR REPLACE INTO Photos (photo_id, photo_uniq_id, photo_url, owner_id) VALUES (?,?,?,?);"
-    cur.execute(query,data)
+    cur.execute(query, data)
     conn.commit()
     conn.close()
+
 
 def fetch_targets(spyer_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    data = (spyer_id,)
+    data = (spyer_id, )
     query = "SELECT * FROM Targets WHERE spyer_id = ?;"
     cur.execute(query, data)
     rows = cur.fetchall()
@@ -63,10 +76,11 @@ def fetch_targets(spyer_id):
     conn.close()
     return res
 
+
 def fetch_target_data(target_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    data = (target_id,)
+    data = (target_id, )
     query = "SELECT * FROM Targets WHERE target_id = ?;"
     cur.execute(query, data)
     rows = cur.fetchall()
@@ -81,19 +95,21 @@ def fetch_target_data(target_id):
 
     return data
 
+
 def delete_target(spyer_id, target_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    data = (spyer_id, target_id) 
+    data = (spyer_id, target_id)
     query = "DELETE FROM Targets WHERE spyer_id = ? AND target_id = ?;"
     cur.execute(query, data)
     conn.commit()
     conn.close()
- 
+
+
 def fetch_photos(owner_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    data = (owner_id,)
+    data = (owner_id, )
     query = "SELECT *  FROM Photos WHERE owner_id = ?;"
     cur.execute(query, data)
     rows = cur.fetchall()
@@ -108,18 +124,3 @@ def fetch_photos(owner_id):
 
     conn.close()
     return res
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
