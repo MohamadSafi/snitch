@@ -128,7 +128,27 @@ def target_menu(chat_id, target_id, spyer_id):
 
 
 def help(chat_id):
-    msg = "explain how this bot work"
+    msg = """Let me help you a little 🤖
+1️⃣First if you don't have any targets to track them
+Add some ... it's easy just forward me a message
+from him/her and I will start tracking 😉
+-_-_-_-_-_-_-_-_-_-_-_-_-
+2️⃣Now after adding your targets, You will be notified
+every time they update their profile photo 
+You can view all of your targets
+by pressing on 'View your targets' button 💁🏻‍♂️
+You will see a list of your targets just chose one 👀
+-_-_-_-_-_-_-_-_-_-_-_-_-
+3️⃣Next you will see three options :
+⚙️'Target's data' will send you back all the data available
+on your target (user id , username , name, ....)
+🖼'Profile phtos' will send you back all the profile
+photos your target ever had
+❌'Delete' will remove the user from your target list
+-_-_-_-_-_-_-_-_-_-_-_-_-
+4️⃣That's it .... but for the best experience use
+the '/start' command every time you want to
+check on something 👍🏻"""
     tb.send_message(chat_id, msg)
 
 
