@@ -155,7 +155,6 @@ def targets_menu(user_id, chat_id):
         tb.send_message(chat_id, msg)
         logger.debug(f"Instruction message {user_id}")
 
-    tb.send_message(chat_id, msg)
     logger.debug(f"welcome message sent to {user_id}")
 
 
