@@ -45,7 +45,7 @@ def start(message):
 
     Markup = InlineKeyboardMarkup()
     Markup.row_width = 3
-    msg = "Hey, I'm a snitch 🤫, And I'll send you every profile photo your target has, What do you think about that! cool ha?"
+    msg = "Hey, I'm a snitch 🤫, I will track your targets 24/7 👁"
 
     targets_btn_text = "View your targets"
     help_btn_text = "Help !!"
