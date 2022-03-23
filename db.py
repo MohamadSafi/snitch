@@ -128,7 +128,16 @@ def delete_target(spyer_id, target_id):
     cur.execute(query, data)
     conn.commit()
     conn.close()
+    delete_target_photos(target_id)
 
+def delete_target_photos(target_id):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    data = (target_id,)
+    query = "DELETE FROM Photos WHERE owner_id = ?;" 
+    cur.execute(query, data)
+    conn.commit()
+    conn.close()
 
 def fetch_photos(owner_id):
     conn = sqlite3.connect(DB_PATH)
