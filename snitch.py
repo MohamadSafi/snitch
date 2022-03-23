@@ -170,10 +170,7 @@ def handle_query(call):
 @tb.message_handler(commands=["start"])
 def start(message):
     user_id = message.from_user.id
-    msg = "Hey, I'm a snitch 🤫, " \
-        "And I'll send you every profile photo your target has, " \
-        "What do you think about that! cool ha?"
-
+    msg = "Hey, I'm a snitch 🤫, I will track your targets 24/7 👁"
     tb.send_message(message.chat.id, msg, reply_markup=start_menu_markup())
     logger.debug(f"Starting message has been sent to user {user_id}")
 
