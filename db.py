@@ -52,6 +52,30 @@ def commit_photo(photo_id, photo_uniq_id, owner_id, photo_url="Null"):
     conn.close()
 
 
+def commit_chat(chat_id, user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    data = (chat_id, user_id)
+    query = "INSERT OR REPLACE INTO Chat (chat_id, user_id) VALUES (?,?);"
+    cur.execute(query, data)
+    conn.commit()
+    conn.close()
+
+
+def fetch_chat(user_id):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    data = (user_id, )
+    query = "SELECT chat_id FROM Chat WHERE user_id = ?;"
+    cur.execute(query, data)
+    res = cur.fetchone()
+    if res:
+        res = int(res[0])
+        return res
+    else:
+        return None
+
+
 def fetch_targets(spyer_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
