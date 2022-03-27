@@ -133,3 +133,23 @@ def fetch_photos(owner_id):
 
     conn.close()
     return res
+
+def is_uniq_photo(photo_uniq_id):
+    conn = sqlite3.connect(DB_PATH) 
+    cur = conn.cursor()
+    data = (photo_uniq_id, )
+    query = "SELECT photo_uniq_id FROM Photos WHERE photo_uniq_id = ?;"
+    cur.execute(query, data)
+    rows = cur.fetchall()
+    if len(rows) == 0:
+        return False
+    return True
+
+def fetch_spyer(target_id):
+    conn = sqlite3.conect(DB_PATH)
+    cur = conn.cursor()
+    data = (target_id, )
+    query = "SELECT spyer_id FROM Target WHERE target_id = ?;"
+    cur.execute(query, data)
+    rows = cur.fetchall()
+    return rows
