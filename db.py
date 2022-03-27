@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from log import logger
 
 DB_PATH = "snitch.db"
 
@@ -70,7 +71,7 @@ def fetch_chat(user_id):
     cur.execute(query, data)
     res = cur.fetchone()
     if res:
-        res = int(res[0])
+        res = int(res[0][0])
         return res
     else:
         return None
@@ -103,9 +104,8 @@ def fetch_targets(spyer_id):
 def fetchall_targets():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
-    data = (spyer_id, )
     query = "SELECT * FROM Targets;"
-    cur.execute(query, data)
+    cur.execute(query)
     rows = cur.fetchall()
     res = []
     for row in rows:
@@ -182,22 +182,24 @@ def fetch_photos(owner_id):
     conn.close()
     return res
 
-def is_uniq_photo(photo_uniq_id):
+def is_uniq_photo(photo_id):
     conn = sqlite3.connect(DB_PATH) 
     cur = conn.cursor()
-    data = (photo_uniq_id, )
-    query = "SELECT photo_uniq_id FROM Photos WHERE photo_uniq_id = ?;"
+    data = (photo_id, )
+    query = "SELECT * FROM Photos WHERE photo_id = ?;"
     cur.execute(query, data)
-    rows = cur.fetchall()
-    if len(rows) == 0:
-        return False
-    return True
+    res = cur.fetchall()
+    if not res:
+        logger.error(f"Uniq photo {res}")
+        return True
+    return False
 
-def fetch_spyer(target_id):
-    conn = sqlite3.conect(DB_PATH)
+def fetch_spyers(target_id):
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
     data = (target_id, )
-    query = "SELECT spyer_id FROM Target WHERE target_id = ?;"
+    query = "SELECT spyer_id FROM Targets WHERE target_id = ?;"
     cur.execute(query, data)
     rows = cur.fetchall()
+    rows = [row[0] for row in rows]
     return rows

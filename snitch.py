@@ -4,6 +4,7 @@ import sys
 from telebot.types import InputMediaPhoto
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from threading import Thread
+from time import sleep
 
 from forwarded_msg import ForwardedMessage
 from error_messages import *
@@ -17,6 +18,7 @@ else:
     exit(1)
 
 tb = telebot.TeleBot(TOKEN)
+LISTENER_DELAY = 2
 
 
 def send_msg(chat_id, text, parse_mode="markdown"):
@@ -227,39 +229,51 @@ def spy(message):
 
 
 def notify_spyers(target_id, msg):
-    pass
+    spyers = fetch_spyers(target_id)
+    for spyer_id in spyers: 
+        chat_id = fetch_chat(int(spyer_id))
+        if chat_id:
+            send_msg(chat_id, msg)
+            logger.debug(f"Notified user {spyer_id}")
+    logger.debug(f"Notified spyers of target {target_id}")
 
 
 def get_target_uniq_photos(target_id):
     uniq_photos = []
-    photos = tb.get_user_profile_photos(target_id)
+    userProfilePhotos = tb.get_user_profile_photos(target_id)
+    photos = userProfilePhotos.photos
     for photo in photos:
         photo_id = photo[0].file_id
         photo_uniq_id = photo[0].file_unique_id
-        if is_uniq_photo(photo_uniq_id):
+        logger.error(f"Current photo {photo_uniq_id}")
+        if is_uniq_photo(photo_id):
             logger.debug(
                 f"Unique photo has been detected for user {target_id}")
             uniq_photos.append(photo_id)
-            commit_photos(photo_id, photo_uniq_id, target_id)
+            commit_photo(photo_id, photo_uniq_id, target_id)
             logger.debug(f"Commited Photo {photo_id} to db")
 
     return uniq_photos
 
 
-def listen_for_targets_changes():
-    targets = fetchall_targets()
-    for target in targets:
-        target_id = target["target_id"]
-        uniq_photos = get_target_uniq_photos(target_id)
-        if uniq_photos:
-            msg = f"{Target <Name: {target['first_name']} {target['last_name']}, Username: target['username']> Has New Photos}"
-            notify_spyers(target_id, msg)
-            logger.debug(f"Notified spyers of target {target_id}")
+def listen_for_targets_changes(delay):
+    while True :
+        logger.debug("Listenning ...")
+        targets = fetchall_targets()
+        for target in targets:
+            target_id = target["target_id"]
+            uniq_photos = get_target_uniq_photos(target_id)
+            if uniq_photos:
+                msg = f"Target <Name: {target['first_name']} {target['last_name']} \nUsername: {target['username']}>" 
+                msg += " has added a new profile photo"
+                notify_spyers(target_id, msg)
+        logger.debug("Sleepping")
+        sleep(delay)
 
 
 def main():
     create_tables()
-    listener_thread = Thread(target = listen_for_targets_changes, args = ())
+    listener_thread = Thread(target = listen_for_targets_changes, args = (LISTENER_DELAY,))
     listener_thread.start()
     logger.debug("Listener Thread has been started")
     tb.infinity_polling(interval=0, timeout=0)
