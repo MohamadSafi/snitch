@@ -100,6 +100,30 @@ def fetch_targets(spyer_id):
     conn.close()
     return res
 
+def fetchall_targets():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    data = (spyer_id, )
+    query = "SELECT * FROM Targets;"
+    cur.execute(query, data)
+    rows = cur.fetchall()
+    res = []
+    for row in rows:
+        target = {}
+        target["target_id"] = row[0]
+        target["username"] = row[1]
+        target["first_name"] = row[2]
+        target["last_name"] = row[3]
+        target["last_seen"] = row[4]
+        target["bio"] = row[5]
+        target["status"] = row[6]
+        target["phone_number"] = row[7]
+        target["spyer_id"] = row[8]
+        res.append(target)
+
+    conn.close()
+    return res
+
 
 def fetch_target_data(target_id):
     conn = sqlite3.connect(DB_PATH)

@@ -3,6 +3,7 @@ import sys
 
 from telebot.types import InputMediaPhoto
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from threading import Thread
 
 from forwarded_msg import ForwardedMessage
 from error_messages import *
@@ -225,8 +226,42 @@ def spy(message):
         raise
 
 
+def notify_spyers(target_id, msg):
+    pass
+
+
+def get_target_uniq_photos(target_id):
+    uniq_photos = []
+    photos = tb.get_user_profile_photos(target_id)
+    for photo in photos:
+        photo_id = photo[0].file_id
+        photo_uniq_id = photo[0].file_unique_id
+        if is_uniq_photo(photo_uniq_id):
+            logger.debug(
+                f"Unique photo has been detected for user {target_id}")
+            uniq_photos.append(photo_id)
+            commit_photos(photo_id, photo_uniq_id, target_id)
+            logger.debug(f"Commited Photo {photo_id} to db")
+
+    return uniq_photos
+
+
+def listen_for_targets_changes():
+    targets = fetchall_targets()
+    for target in targets:
+        target_id = target["target_id"]
+        uniq_photos = get_target_uniq_photos(target_id)
+        if uniq_photos:
+            msg = f"{Target <Name: {target['first_name']} {target['last_name']}, Username: target['username']> Has New Photos}"
+            notify_spyers(target_id, msg)
+            logger.debug(f"Notified spyers of target {target_id}")
+
+
 def main():
     create_tables()
+    listener_thread = Thread(target = listen_for_targets_changes, args = ())
+    listener_thread.start()
+    logger.debug("Listener Thread has been started")
     tb.infinity_polling(interval=0, timeout=0)
     return True
 
